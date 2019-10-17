@@ -26,7 +26,7 @@ SPREADSHEET_ID = config('SPREADSHEET_ID')
 HEADER_ROW = 'Sheet1!A2:L'
 BODY_ROW = 'Sheet1!A2:A'
 COLUMNS = 'COLUMNS'
-UF = 'rj'
+UF = config('UF')
 
 def le_chaves():
     with open('chaves.txt', 'r+') as f:
