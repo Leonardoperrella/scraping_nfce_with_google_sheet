@@ -1,21 +1,19 @@
 from __future__ import print_function
-import time
-import re
-import csv
-import pickle
 import os.path
-from bs4 import BeautifulSoup
-from selenium import webdriver
-from selenium.webdriver.firefox.options import Options
-from selenium.common.exceptions import TimeoutException
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.by import By
-from googleapiclient.discovery import build
-from google_auth_oauthlib.flow import InstalledAppFlow
-from google.auth.transport.requests import Request
+import pickle
+import re
 from pprint import pprint
+from bs4 import BeautifulSoup
 from decouple import config
+from google.auth.transport.requests import Request
+from google_auth_oauthlib.flow import InstalledAppFlow
+from googleapiclient.discovery import build
+from selenium import webdriver
+from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.common.by import By
+from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 
 #options = webdriver.ChromeOptions();
 #options.add_argument('headless');
@@ -28,27 +26,25 @@ BODY_ROW = 'Sheet1!A2:A'
 COLUMNS = 'COLUMNS'
 UF = config('UF')
 
+
 def le_chaves():
     with open('chaves.txt', 'r+') as f:
         dic = {}
         list_chaves = f.read().split()
-
         for chave in list_chaves:
             key = re.findall(r'p=(\w{44})', chave)
             if key:
                 dic[key[0]] = chave
             else:    
                 dic[chave] = 'http://www4.fazenda.'+UF+f'.gov.br/consultaNFCe/QRCode?p={chave}|1|1|1|1'
-            
-        
-        #list_chaves = list(dict.fromkeys(list_chaves))
+
         f.truncate(0)
         return dic
 
 
-def filtra_chave_nao_lidas(dic_chaves, creds=None):
+def filtra_chave_nao_lidas(dic_chaves):
     
-    novo_dic_chaves = []
+    novo_dic_chaves = {}
 
     sheet = google_connect()
 
@@ -59,18 +55,15 @@ def filtra_chave_nao_lidas(dic_chaves, creds=None):
     
     chaves_lidas = result.get('values', [])
 
-
     if not chaves_lidas:
         return dic_chaves
 
     chaves_lidas = list(dict.fromkeys(chaves_lidas[0]))
 
-    
     for chv in dic_chaves:
         if chv not in chaves_lidas:
-            print(chaves_lidas)
-            novo_dic_chaves[chv] = dic_chaves[chv] 
-    
+            novo_dic_chaves[chv] = dic_chaves[chv]
+
     return novo_dic_chaves
            
 
@@ -176,7 +169,8 @@ def exporta_sheet(list_):
     resp = req.execute()
 
     pprint(resp)
-     
+
+
 def google_connect(creds=None):
     
     if os.path.exists('token.pickle'):
@@ -198,11 +192,11 @@ def google_connect(creds=None):
 
     return service.spreadsheets()
 
+
 def main():
     
     keys = filtra_chave_nao_lidas(le_chaves())
-    
-    print(keys)
+
     if not keys:
         print('todas as chaves ja foram exportadas.')
         return None
@@ -210,13 +204,10 @@ def main():
     for key in keys:
         
         print('buscando dados...')
-        print(key)
         options = Options()
         options.headless = True
         driver = webdriver.Firefox(options=options)
-        #url = f'http://www4.fazenda.rj.gov.br/consultaNFCe/QRCode?p={key}|1|1|1|1'
         url = keys[key]
-        print(url)
         driver.get(url)
         timeout = 5
         while True:
@@ -233,6 +224,9 @@ def main():
         exporta_sheet(carrega_dados(soup))
 
         print(f"Dados exportados com sucesso! {key} \o/")
-    
+
+    print(f'https://docs.google.com/spreadsheets/d/{SPREADSHEET_ID}/edit')
+
+
 if __name__ == '__main__':
     main()
