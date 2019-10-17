@@ -8,9 +8,9 @@ chave,	cnpj,	nome_estab,	data_emissao,	cod_prod,	nome_item,	val_unit,	quantidade
 2 - With the python-decouple installed, create a file setting.ini with the follws comands below.
 
 [settings]
-SCOPES=<google sheets http>
-SPREADSHEET_ID=<sheet_Id>
-UF=<state acronym>
+SCOPES=<'google sheets http'>
+SPREADSHEET_ID=<'sheet_Id'>
+UF=<'state acronym'>
 
 3- Activate your virtualenv.
 
