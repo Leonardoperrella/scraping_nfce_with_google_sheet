@@ -15,10 +15,6 @@ from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
-#options = webdriver.ChromeOptions();
-#options.add_argument('headless');
-#options.add_argument('window-size=1200x600'); // optional
-
 SCOPES = [config('SCOPES')]
 SPREADSHEET_ID = config('SPREADSHEET_ID')
 HEADER_ROW = 'Sheet1!A2:L'
@@ -168,7 +164,7 @@ def exporta_sheet(list_):
 
     resp = req.execute()
 
-    pprint(resp)
+    return(resp)
 
 
 def google_connect(creds=None):
@@ -204,25 +200,48 @@ def main():
     for key in keys:
         
         print('buscando dados...')
+
+        # options = webdriver.ChromeOptions();
+        # options.add_argument('headless');
+        # driver = webdriver.Firefox(options=options)
+
         options = Options()
         options.headless = True
         driver = webdriver.Firefox(options=options)
         url = keys[key]
         driver.get(url)
         timeout = 5
-        while True:
+        trying = 5
+        lwhile = True
+        while lwhile:
             try:
                 element_present = EC.presence_of_element_located((By.ID, 'tabResult'))
                 WebDriverWait(driver, timeout).until(element_present)
-                print('pagina carregada com sucesso')
+                print('Pagina carregada com sucesso')
                 break
             except TimeoutException:
-                print("Timed out waiting for page to load")
+                print("Timed out, tentando novamente")
+                trying -= 1
+                if trying == 0:
+                    print("Numero de tentativas esgotado")
+                    print(f"Dados da chave: {key} não exportados")
+                    lwhile = False
+
+        if not lwhile:
+            driver.quit()
+            return None
+
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         driver.quit()
-        
-        exporta_sheet(carrega_dados(soup))
 
+        resp = exporta_sheet(carrega_dados(soup))
+
+        if 'updatedCells' not in resp['updates']:
+            print(f"Dados não exportados, chave {key}")
+            pprint(resp)
+            return None
+
+        pprint(resp)
         print(f"Dados exportados com sucesso! {key} \o/")
 
     print(f'https://docs.google.com/spreadsheets/d/{SPREADSHEET_ID}/edit')
