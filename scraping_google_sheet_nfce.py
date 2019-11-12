@@ -106,12 +106,14 @@ def carrega_dados(soup):
         cod_prod = ''.join(re.findall(r'\d+', s))
 
         # nome_tem
-        nomeItem = table.select('tr td span.txtTit')[n].text
+        nome_item = table.select('tr td span.txtTit')[n].text
+        if re.match(r'^\W', nome_item[0]):
+            nome_item = nome_item[1:]
 
         #val_unit
         s = table.select('tr td span.RvlUnit')[n].text
         s = re.sub('\s+', '', s)
-        valUnit = ''.join(re.findall(r'\d*,?\d+', s))
+        val_unit = ''.join(re.findall(r'\d*,?\d+', s))
 
         #quantidade
         s = table.select('tr td span.Rqtd')[n].text
@@ -130,8 +132,8 @@ def carrega_dados(soup):
             nome_estabelecimento,
             data_emissao,
             cod_prod,
-            nomeItem,
-            valUnit,
+            nome_item,
+            val_unit,
             quantidade,
             unidade,
             totalItem,

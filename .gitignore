@@ -2,3 +2,10 @@ credentials.json
 token.pickle
 geckodriver.log
 settings.ini
+.idea/
+.ipynb_checkpoints/
+Untitled.ipynb
+create_google_sheet.py
+quickstart_script.py
+read_google_sheet.py
+write_google_sheet.py
