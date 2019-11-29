@@ -2,6 +2,7 @@ from __future__ import print_function
 import os.path
 import pickle
 import re
+import traceback
 from pprint import pprint
 from bs4 import BeautifulSoup
 from decouple import config
@@ -212,8 +213,8 @@ def main():
         driver = webdriver.Firefox(options=options)
         url = keys[key]
         driver.get(url)
-        timeout = 5
-        trying = 5
+        timeout = 10
+        trying = 1
         lwhile = True
         while lwhile:
             try:
@@ -222,13 +223,23 @@ def main():
                 print('Pagina carregada com sucesso')
                 break
             except TimeoutException:
+                #print(traceback.format_exc())
                 print("Timed out, tentando novamente")
                 trying -= 1
                 if trying == 0:
-                    print("Numero de tentativas esgotado")
-                    print(f"Dados da chave: {key} não exportados")
+                    try:
+                        avisoErro = EC.presence_of_element_located((By.CLASS_NAME, 'avisoErro'))
+                        WebDriverWait(driver, timeout).until(element_present)
+                    except TimeoutException:
+                        pass
+                    if avisoErro:
+                        initial_div = driver.find_element_by_class_name('avisoErro')
+                        print(initial_div.text)
+                    else:         
+                        print("Numero de tentativas esgotado")
+                        print(f"Dados da chave: {key} não exportados")
                     lwhile = False
-
+      
         if not lwhile:
             driver.quit()
             return None
